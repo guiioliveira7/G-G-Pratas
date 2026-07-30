@@ -261,6 +261,54 @@
     transition:opacity .7s ease, transform .7s ease;
   }
   [data-reveal].in{ opacity:1; transform:translateY(0); }
+
+  @media(max-width:760px){
+    .wrap{ padding-left:20px; padding-right:20px; }
+    nav.topbar .wrap{ height:64px; }
+    .brand{ font-size:20px; }
+    .nav-cta{ padding:9px 13px; font-size:12px; }
+
+    header.hero{ padding:72px 0 54px; }
+    h1.headline{ font-size:clamp(38px, 12vw, 52px); line-height:1.02; }
+    .hero-sub{ font-size:15px; line-height:1.6; }
+    .hero-actions{ margin-top:30px; gap:12px; }
+    .hero-actions .btn-primary,
+    .hero-actions .btn-ghost{ width:100%; justify-content:center; text-align:center; }
+    .chain-divider{ margin-top:46px; overflow:hidden; }
+
+    .stats .stat{ padding:22px 20px; }
+    .stats .num{ font-size:24px; }
+    .stats .label{ font-size:10px; line-height:1.4; }
+
+    .section{ padding:64px 0; }
+    .section-head{ margin-bottom:32px; gap:16px; }
+    .section-title{ font-size:34px; }
+    .section-note{ max-width:none; }
+    .grid{ gap:20px; }
+    .tag-card{ padding-top:22px; cursor:pointer; }
+    .tag-card:hover{ transform:none; }
+    .tag-img{ aspect-ratio:4/5; }
+    .tag-body{ padding:18px 18px 20px; }
+    .tag-desc{ min-height:0; }
+    .tag-cta{ min-height:40px; display:inline-flex; align-items:center; }
+
+    .material-strip .wrap{ padding:64px 20px; }
+    .spec-list li{ gap:20px; }
+    .spec-list li span:last-child{ text-align:right; }
+
+    .cta-section{ padding:72px 0; }
+    .cta-actions .btn-primary,
+    .cta-actions .btn-ghost{ width:100%; justify-content:center; text-align:center; }
+    footer{ padding:34px 0; }
+    footer .wrap{ flex-direction:column; align-items:flex-start; }
+    footer .flinks{ flex-wrap:wrap; gap:14px 20px; }
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    html{ scroll-behavior:auto; }
+    *, *::before, *::after{ transition:none !important; }
+    [data-reveal]{ opacity:1; transform:none; }
+  }
 </style>
 </head>
 <body>
@@ -450,7 +498,7 @@
     <h2>Escolheu a peça?<br>Vamos combinar os detalhes.</h2>
     <p class="hero-sub">Confirmo estoque, forma de pagamento e prazo de envio diretamente com você pelo WhatsApp.</p>
     <div class="cta-actions">
-      <a href="https://wa.me/5511952266953" class="btn-primary">Chamar no WhatsApp →</a>
+      <a href="https://wa.me/5511952266953?text=Gostaria%20de%20saber%20mais%20referente%20a%20esta%20prata" class="btn-primary" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp →</a>
       <a href="#pecas" class="btn-ghost">Voltar ao catálogo</a>
     </div>
   </div>
@@ -470,10 +518,59 @@
 
 <script>
   const els = document.querySelectorAll('[data-reveal]');
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
-  }, {threshold:0.15});
-  els.forEach(el=>io.observe(el));
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    }, {threshold:0.15});
+    els.forEach(el=>io.observe(el));
+  } else {
+    els.forEach(el=>el.classList.add('in'));
+  }
+
+  const cards = document.querySelectorAll('.tag-card');
+
+  cards.forEach((card, index)=>{
+    const productName = card.querySelector('.tag-name').textContent.trim();
+    const productId = `prata-${index + 1}-${productName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')}`;
+    card.id = productId;
+
+    const whatsappUrl = 'https://wa.me/5511952266953?text=' +
+      encodeURIComponent(`Gostaria de saber mais referente a esta prata: ${productName}`);
+    const link = card.querySelector('.tag-cta');
+    link.href = whatsappUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+
+    card.setAttribute('role', 'link');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', `Consultar ${productName} pelo WhatsApp`);
+
+    const openWhatsapp = ()=>window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    card.addEventListener('click', (event)=>{
+      if (!event.target.closest('a')) openWhatsapp();
+    });
+    card.addEventListener('keydown', (event)=>{
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openWhatsapp();
+      }
+    });
+  });
+
+  if (window.location.hash) {
+    const selectedProduct = document.getElementById(window.location.hash.slice(1));
+    if (selectedProduct) selectedProduct.scrollIntoView({block:'center'});
+  }
+
+  document.querySelectorAll('.tag-img img').forEach((img)=>{
+    img.loading = 'lazy';
+    img.decoding = 'async';
+  });
 </script>
 
 </body>
